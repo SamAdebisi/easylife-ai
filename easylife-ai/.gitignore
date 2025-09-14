@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.env
+.venv/
+venv/
+.env*
+*.log
+
+# DVC
+/.dvc/
+*.dvc
+/data/*
+!/data/.gitkeep
+
+# MLflow
+mlruns/
+
+# OS
+.DS_Store
+
+# Byte-compiled
+*.so
