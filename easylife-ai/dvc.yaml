@@ -1,0 +1,5 @@
+stages:
+example:
+cmd: python -c “print(‘DVC wired’)”
+deps: []
+outs: []
