@@ -1,5 +1,5 @@
 stages:
-example:
-cmd: python -c “print(‘DVC wired’)”
-deps: []
-outs: []
+  example:
+    cmd: python -c "print('DVC wired')"
+    deps: []
+    outs: []
