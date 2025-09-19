@@ -25,8 +25,8 @@ precommit:
 pre-commit run –all-files
 
 dvc-init:
-dvc init -q && dvc remote add -d minio s3://datasets –force 
-–endpointurl http://127.0.0.1:9000 && 
-dvc remote modify minio access_key_id minio && 
-dvc remote modify minio secret_access_key minio123 && 
+dvc init -q && dvc remote add -d minio s3://datasets –force
+–endpointurl http://127.0.0.1:9000 &&
+dvc remote modify minio access_key_id minio &&
+dvc remote modify minio secret_access_key minio123 &&
 echo ‘data/raw’ | dvc add -q -

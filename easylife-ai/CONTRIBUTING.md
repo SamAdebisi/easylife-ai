@@ -1,4 +1,4 @@
-Contributing 
+Contributing
 
 1. Create a branch
 2. Run pre-commit install
