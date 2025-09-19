@@ -34,3 +34,9 @@ dvc-init:
 	dvc remote modify --local minio access_key_id minio
 	dvc remote modify --local minio secret_access_key minio123
 	dvc add -q data/raw
+
+check-docker:
+	@command -v docker >/dev/null || { echo "Install Docker Desktop (Option A) or Colima (Option B) first."; exit 1; }
+
+up: check-docker
+	$(COMPOSE) up -d --build
