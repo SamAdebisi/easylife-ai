@@ -30,3 +30,20 @@ dvc init -q && dvc remote add -d minio s3://datasets –force
 dvc remote modify minio access_key_id minio &&
 dvc remote modify minio secret_access_key minio123 &&
 echo ‘data/raw’ | dvc add -q -
+
+
+# .PHONY: up down logs fmt lint test
+# up:        ## start services
+# 	docker compose up -d
+# down:      ## stop services
+# 	docker compose down
+# logs:      ## tail logs
+# 	docker compose logs -f
+# fmt:
+# 	black .
+# 	isort .
+# lint:
+# 	flake8 .
+# 	mypy || true
+# test:
+# 	pytest -q
