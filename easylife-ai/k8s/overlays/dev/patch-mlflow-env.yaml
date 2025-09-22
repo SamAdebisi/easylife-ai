@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+spec:
+  template:
+    spec:
+      containers:
+        - name: mlflow
+          env:
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: http://minio.easylife.svc.cluster.local:9000
