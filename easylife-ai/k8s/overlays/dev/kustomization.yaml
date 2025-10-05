@@ -3,6 +3,8 @@ kind: Kustomization
 namespace: easylife
 resources:
   - ../../base
+  - clusterissuer-letsencrypt.yaml
+  - clusterissuer-selfsigned.yaml
 patches:
   - path: patch-mlflow-env.yaml
   - path: patch-minio-svc-nodeport.yaml
