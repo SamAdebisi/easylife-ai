@@ -82,6 +82,27 @@ See `docs/ARCHITECTURE.md` for a deeper view of each service and shared componen
    - MLflow runs: `http://127.0.0.1:5000` (experiments `nlp_sentiment` + `nlp_service_inference`)
 4. Capture dashboards following `docs/observability/dashboard_capture.md` and store images under `docs/assets/`.
 
+## Phase 2 – Computer Vision QC Service
+
+1. Build the synthetic blur dataset and baseline threshold model:
+   ```bash
+   dvc repro cv-preprocess cv-train
+   ```
+   This logs Laplacian-based metrics to MLflow under `cv_blur_detection` and writes artifacts to `cv_service/artifacts/`.
+2. Launch the FastAPI service locally:
+   ```bash
+   uvicorn cv_service.app.main:app --reload --port 8002
+   ```
+   or use `./cv_service/run_dev.sh` (listens on `${PORT:-8002}`).
+3. Send a test image for blur assessment:
+   ```bash
+   curl -s -X POST http://127.0.0.1:8002/predict_image \
+     -F "file=@img/sample_sharp.png"
+   ```
+   - Prometheus metrics: `http://127.0.0.1:8002/metrics`
+   - MLflow runs: `http://127.0.0.1:5000` (experiments `cv_blur_detection` + `cv_service_inference`)
+4. Follow `docs/observability/dashboard_capture.md` to snapshot Grafana panels (e.g., `cv_predictions_total`).
+
 ## Contributing
 
 1. Create a feature branch.

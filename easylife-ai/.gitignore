@@ -6,6 +6,8 @@ __pycache__/
 venv/
 .env*
 *.log
+../.venv/
+../venv/
 
 # DVC
 /.dvc/cache/
@@ -18,6 +20,7 @@ mlruns/
 
 # Service artifacts
 nlp_service/artifacts/
+cv_service/artifacts/
 
 # OS
 .DS_Store

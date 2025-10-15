@@ -54,3 +54,10 @@ Each phase should ship with:
 - **Training** – `nlp_service/train.py` fits a TF-IDF + Logistic Regression classifier, logs metrics to MLflow (`nlp_sentiment` experiment), and stores artifacts in `nlp_service/artifacts/`.
 - **Serving** – `nlp_service/app/main.py` exposes `/predict`, `/health`, and `/metrics` (Prometheus). It auto-loads the stored model or backfills one if missing, and streams inference telemetry to MLflow (`nlp_service_inference` experiment).
 - **Monitoring** – Prometheus counter `nlp_predictions_total` is emitted automatically; Grafana dashboards can be captured following `docs/observability/dashboard_capture.md`.
+
+## Phase 2 Snapshot
+
+- **Data Pipeline** – `pipelines/cv_prepare_data.py` generates geometric patterns with and without Gaussian blur, producing images in `data/raw/cv/` and manifest metadata in `data/processed/cv/labels.csv` via the `cv-preprocess` stage.
+- **Training** – `cv_service/train.py` computes variance-of-Laplacian scores, identifies an optimal threshold, logs metrics to MLflow (`cv_blur_detection`), and persists model artifacts in `cv_service/artifacts/`.
+- **Serving** – `cv_service/app/main.py` exposes `/predict_image`, `/health`, and `/metrics`. Requests accept multipart images, emit `cv_predictions_total` Prometheus counters, and log blur scores to MLflow (`cv_service_inference`).
+- **Testing** – `cv_service/tests/test_predict_image.py` covers inference, metrics exposure, and ensures the fallback training path keeps the model ready for local runs.

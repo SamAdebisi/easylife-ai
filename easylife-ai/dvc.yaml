@@ -36,3 +36,25 @@ stages:
           persist: true
     metrics_no_cache:
       - nlp_service/artifacts/metrics.json
+  cv-preprocess:
+    cmd: python pipelines/cv_prepare_data.py
+    deps:
+      - pipelines/cv_prepare_data.py
+    outs:
+      - data/raw/cv:
+          cache: false
+          persist: true
+      - data/processed/cv:
+          cache: false
+          persist: true
+  cv-train:
+    cmd: python cv_service/train.py
+    deps:
+      - cv_service/train.py
+      - data/processed/cv/labels.csv
+    outs:
+      - cv_service/artifacts:
+          cache: false
+          persist: true
+    metrics_no_cache:
+      - cv_service/artifacts/metrics.json
