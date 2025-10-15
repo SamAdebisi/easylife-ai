@@ -2,9 +2,6 @@
 
 COMPOSE := docker compose -f docker/docker-compose.yml
 
-up:
-	$(COMPOSE) up -d --build
-
 e2e:
 	$(COMPOSE) up --build
 
@@ -33,7 +30,7 @@ dvc-init:
 	dvc remote modify minio endpointurl http://127.0.0.1:9000
 	dvc remote modify --local minio access_key_id minio
 	dvc remote modify --local minio secret_access_key minio123
-	dvc add -q data/raw
+	dvc repro bootstrap-data-dirs
 
 check-docker:
 	@command -v docker >/dev/null || { echo "Install Docker Desktop (Option A) or Colima (Option B) first."; exit 1; }
