@@ -25,7 +25,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from cv_service.model import BlurThresholdModel, variance_of_laplacian  # noqa: E402
+from cv_service.model import (  # noqa: E402  # isort:skip
+    BlurThresholdModel,
+    variance_of_laplacian,
+)
+
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
 MANIFEST_PATH = PROJECT_ROOT / "data" / "processed" / "cv" / "labels.csv"
 
