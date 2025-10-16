@@ -1,0 +1,5 @@
+services:
+  infra:
+    container_name: easylife-infra
+    image: docker:27.2.0-dind
+    privileged: true

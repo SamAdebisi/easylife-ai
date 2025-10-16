@@ -1,4 +1,6 @@
+# Secrets and credentials
 .venv/
+.env*
 .env.local
 .env.production
 .env.development
@@ -6,14 +8,15 @@
 .secrets/
 secrets/
 **/secrets.*
-**/*.pem
-**/*.key
-**/*.crt
-**/*.p12
 **/*_secret.*
 **/*_credentials.*
 **/*passwords.*
 **/*api_keys.*
+**/*.pem
+**/*.key
+**/*.crt
+**/*.p12
+*.pfx
 *.kubeconfig
 .aws/
 .azure/
@@ -25,4 +28,33 @@ terraform.tfvars
 *.tfstate.*
 ansible-vault.*
 vault-pass.txt
-*.pfx
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+*.log
+../.venv/
+../venv/
+
+# DVC
+/.dvc/cache/
+/.dvc/tmp/
+/data/*
+!/data/.gitkeep
+
+# MLflow
+mlruns/
+
+# Service artifacts
+nlp_service/artifacts/
+cv_service/artifacts/
+
+# OS
+.DS_Store
+
+# Byte-compiled
+*.so
+
+# Misc project files
+recsys_service/.pytest_cache/README.md
