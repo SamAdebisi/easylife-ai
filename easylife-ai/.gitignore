@@ -1,10 +1,38 @@
+# Secrets and credentials
+.venv/
+.env*
+.env.local
+.env.production
+.env.development
+.env.test
+.secrets/
+secrets/
+**/secrets.*
+**/*_secret.*
+**/*_credentials.*
+**/*passwords.*
+**/*api_keys.*
+**/*.pem
+**/*.key
+**/*.crt
+**/*.p12
+*.pfx
+*.kubeconfig
+.aws/
+.azure/
+.gcp/
+.config/gcloud/
+.docker/config.json
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+ansible-vault.*
+vault-pass.txt
+
 # Python
 __pycache__/
 *.py[cod]
-*.env
-.venv/
 venv/
-.env*
 *.log
 ../.venv/
 ../venv/
@@ -27,3 +55,6 @@ cv_service/artifacts/
 
 # Byte-compiled
 *.so
+
+# Misc project files
+recsys_service/.pytest_cache/README.md

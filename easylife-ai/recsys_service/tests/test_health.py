@@ -1,5 +1,6 @@
-from app.main import app
 from fastapi.testclient import TestClient
+
+from recsys_service.app.main import app
 
 
 def test_health():

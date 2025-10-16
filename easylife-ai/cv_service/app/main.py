@@ -10,13 +10,18 @@ from typing import Optional
 import cv2
 import mlflow
 import numpy as np
-from cv_service.model import BlurThresholdModel, variance_of_laplacian
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from joblib import load
 from mlflow.tracking import MlflowClient
 from prometheus_client import Counter
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel
+
+from cv_service.model import (  # isort:skip
+    BlurThresholdModel,
+    CnnBlurModel,
+    variance_of_laplacian,
+)
 
 logger = logging.getLogger("cv_service")
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
@@ -29,7 +34,10 @@ Instrumentator().instrument(app).expose(
 )
 
 ARTIFACT_DIR = Path(__file__).resolve().parent.parent / "artifacts"
-MODEL_PATH = ARTIFACT_DIR / "blur_model.joblib"
+THRESHOLD_MODEL_PATH = ARTIFACT_DIR / "blur_model.joblib"
+CNN_MODEL_PATH = ARTIFACT_DIR / "cnn_model.pt"
+
+MODEL_VARIANT = os.getenv("CV_MODEL_VARIANT", "threshold").lower()
 
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "mlruns")
 MLFLOW_EXPERIMENT = os.getenv(
@@ -47,7 +55,7 @@ MLFLOW_CLIENT: Optional[MlflowClient] = None
 MLFLOW_RUN_ID: Optional[str] = None
 INFERENCE_STEP = count()
 
-MODEL: Optional[BlurThresholdModel] = None
+MODEL: Optional[object] = None
 
 
 class HealthResponse(BaseModel):
@@ -59,32 +67,48 @@ class PredictionResponse(BaseModel):
     label_name: str
     score: float
     confidence: float
+    model_variant: str
 
 
 def ensure_model_artifact() -> None:
-    if MODEL_PATH.exists():
-        return
+    if MODEL_VARIANT == "cnn":
+        if CNN_MODEL_PATH.exists():
+            return
+        logger.warning("CNN artifact missing; training fallback model.")
+        from cv_service import train_cnn  # local import
+        from pipelines import cv_ingest_data, cv_prepare_data  # local import
 
-    logger.warning("Model artifact missing; training fallback model.")
-    from cv_service.train import main as train_model  # local import
-    from pipelines.cv_prepare_data import main as prepare_data  # local import
+        cv_ingest_data.main()
+        cv_prepare_data.main()
+        train_cnn.main()
+    else:
+        if THRESHOLD_MODEL_PATH.exists():
+            return
+        logger.warning("Threshold artifact missing; training fallback model.")
+        from cv_service import train  # local import
+        from pipelines import cv_ingest_data, cv_prepare_data  # local import
 
-    prepare_data()
-    train_model()
+        cv_ingest_data.main()
+        cv_prepare_data.main()
+        train.main()
 
 
 def load_model() -> None:
     global MODEL
     ensure_model_artifact()
-    MODEL = load(MODEL_PATH)
-    if not isinstance(MODEL, BlurThresholdModel):
-        raise RuntimeError(
-            "Loaded model is not a BlurThresholdModel instance.",
+    if MODEL_VARIANT == "cnn":
+        MODEL = CnnBlurModel(CNN_MODEL_PATH)
+        logger.info("Loaded CNN blur model from %s", CNN_MODEL_PATH)
+    else:
+        MODEL = load(THRESHOLD_MODEL_PATH)
+        if not isinstance(MODEL, BlurThresholdModel):
+            raise RuntimeError(
+                "Loaded model is not a BlurThresholdModel instance.",
+            )
+        logger.info(
+            "Loaded blur detection model with threshold %.2f",
+            MODEL.threshold,
         )
-    logger.info(
-        "Loaded blur detection model with threshold %.2f",
-        MODEL.threshold,
-    )
 
 
 def init_mlflow() -> None:
@@ -106,7 +130,11 @@ def init_mlflow() -> None:
         mlflow.end_run()
 
         client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
-        client.log_param(run_id, "model_path", str(MODEL_PATH))
+        artifact_path = str(
+            CNN_MODEL_PATH if MODEL_VARIANT == "cnn" else THRESHOLD_MODEL_PATH
+        )
+        client.log_param(run_id, "model_path", artifact_path)
+        client.log_param(run_id, "model_variant", MODEL_VARIANT)
 
         MLFLOW_CLIENT = client
         MLFLOW_RUN_ID = run_id
@@ -121,7 +149,7 @@ def init_mlflow() -> None:
         MLFLOW_RUN_ID = None
 
 
-def log_inference(score: float, label: int) -> None:
+def log_inference(score: float, label: int, metric_key: str) -> None:
     if not MLFLOW_CLIENT or not MLFLOW_RUN_ID:
         return
 
@@ -129,7 +157,7 @@ def log_inference(score: float, label: int) -> None:
     try:
         MLFLOW_CLIENT.log_metric(
             run_id=MLFLOW_RUN_ID,
-            key="blur_score",
+            key=metric_key,
             value=float(score),
             step=step,
         )
@@ -184,17 +212,29 @@ async def predict_image(file: UploadFile = File(...)) -> PredictionResponse:
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    score = variance_of_laplacian(image)
-    label = int(score >= MODEL.threshold)
-    label_name = "sharp" if label == 1 else "blurred"
-    confidence = float(MODEL.predict_confidence(np.array([score]))[0])
+    if MODEL_VARIANT == "cnn":
+        assert isinstance(MODEL, CnnBlurModel)
+        probs = MODEL.predict(image)
+        label = int(np.argmax(probs))
+        label_name = "sharp" if label == 1 else "blurred"
+        score = float(probs[1])  # probability of sharp
+        confidence = float(probs[label])
+        metric_key = "sharp_probability"
+    else:
+        assert isinstance(MODEL, BlurThresholdModel)
+        score = variance_of_laplacian(image)
+        label = int(score >= MODEL.threshold)
+        label_name = "sharp" if label == 1 else "blurred"
+        confidence = float(MODEL.predict_confidence(np.array([score]))[0])
+        metric_key = "blur_score"
 
     PREDICTION_COUNTER.labels(label=label_name).inc()
-    log_inference(score, label)
+    log_inference(score, label, metric_key)
 
     return PredictionResponse(
         label=label,
         label_name=label_name,
         score=float(score),
         confidence=confidence,
+        model_variant=MODEL_VARIANT,
     )

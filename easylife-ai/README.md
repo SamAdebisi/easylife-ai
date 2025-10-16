@@ -84,11 +84,12 @@ See `docs/ARCHITECTURE.md` for a deeper view of each service and shared componen
 
 ## Phase 2 – Computer Vision QC Service
 
-1. Build the synthetic blur dataset and baseline threshold model:
+1. Ingest data (or generate fallbacks), build manifest, and train models:
    ```bash
-   dvc repro cv-preprocess cv-train
+   dvc repro cv-ingest cv-preprocess cv-train cv-train-cnn
    ```
-   This logs Laplacian-based metrics to MLflow under `cv_blur_detection` and writes artifacts to `cv_service/artifacts/`.
+   This logs Laplacian and CNN metrics to MLflow (`cv_blur_detection`, `cv_blur_detection_cnn`) and writes artifacts to `cv_service/artifacts/`.
+   - Configure ingestion via `configs/cv_ingest.yaml` (supports `copy` or `symlink` strategies and custom glob patterns).
 2. Launch the FastAPI service locally:
    ```bash
    uvicorn cv_service.app.main:app --reload --port 8002
@@ -101,7 +102,8 @@ See `docs/ARCHITECTURE.md` for a deeper view of each service and shared componen
    ```
    - Prometheus metrics: `http://127.0.0.1:8002/metrics`
    - MLflow runs: `http://127.0.0.1:5000` (experiments `cv_blur_detection` + `cv_service_inference`)
-4. Follow `docs/observability/dashboard_capture.md` to snapshot Grafana panels (e.g., `cv_predictions_total`).
+4. Follow `docs/observability/dashboard_capture.md` to snapshot Grafana panels (e.g., `cv_predictions_total`, `sharp_probability`).
+5. Switch inference between threshold and CNN variants via `CV_MODEL_VARIANT` environment variable (defaults to `threshold`). Set `CV_MODEL_VARIANT=cnn` to exercise the TorchScript model.
 
 ## Contributing
 

@@ -5,7 +5,7 @@ Follow this checklist after you bring the monitoring stack online (`make up`) so
 1. **Start Infra**
    - `make up` to launch MinIO, MLflow, Prometheus, and Grafana.
    - Run the NLP pipeline: `dvc repro nlp-preprocess nlp-train`.
-   - Run the CV pipeline: `dvc repro cv-preprocess cv-train`.
+   - Run the CV pipeline: `dvc repro cv-ingest cv-preprocess cv-train cv-train-cnn`.
    - Start the FastAPI services locally:
      - NLP: `./nlp_service/run_dev.sh` or `uvicorn nlp_service.app.main:app --reload`.
      - CV: `./cv_service/run_dev.sh` or `uvicorn cv_service.app.main:app --reload --port 8002`.
@@ -22,16 +22,16 @@ Follow this checklist after you bring the monitoring stack online (`make up`) so
      curl -s -X POST http://localhost:8002/predict_image \
        -F "file=@img/sample_sharp.png"
      ```
-   - Confirm responses and check `/metrics` for `cv_predictions_total` increments.
+   - Confirm responses and check `/metrics` for `cv_predictions_total` increments (and verify `sharp_probability` entries if the CNN variant is active).
 
 3. **Capture MLflow Screens**
    - Open `http://localhost:5000`.
    - Screenshot **Experiments → nlp_sentiment** and **nlp_service_inference** to highlight parameters, metrics, and confidence trends.
-   - Capture **Experiments → cv_blur_detection** showcasing threshold metrics, plus **cv_service_inference** to visualise blur score telemetry.
+   - Capture **Experiments → cv_blur_detection** (threshold) and **cv_blur_detection_cnn** (CNN) to highlight accuracy trends, plus **cv_service_inference** to visualise `blur_score` or `sharp_probability` telemetry.
 
 4. **Capture Grafana Panels**
    - Visit `http://localhost:3000` (credentials `admin` / `admin` by default).
-   - Add a Prometheus panel that charts `nlp_predictions_total` by label.
+   - Add Prometheus panels that chart `nlp_predictions_total` and `cv_predictions_total`/`sharp_probability` over time by label.
    - Export the panel as PNG (Panel menu → Share → Export) and save under `docs/assets/grafana-<date>.png`.
 
 5. **Document**

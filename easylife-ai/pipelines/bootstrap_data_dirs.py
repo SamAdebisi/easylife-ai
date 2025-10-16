@@ -9,6 +9,7 @@ from pathlib import Path
 
 DATA_ROOT = Path(__file__).resolve().parent.parent / "data"
 SUBDIRS = ("raw", "processed", "external")
+SENTINEL = DATA_ROOT / ".bootstrap_complete"
 
 
 def main() -> None:
@@ -19,6 +20,8 @@ def main() -> None:
         gitkeep = subdir / ".gitkeep"
         if not gitkeep.exists():
             gitkeep.touch()
+    SENTINEL.parent.mkdir(parents=True, exist_ok=True)
+    SENTINEL.write_text("bootstrap complete\n")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.env
+.venv/
+venv/
+.env*
+*.log
+../.venv/
+../venv/
+
+# DVC
+/.dvc/cache/
+/.dvc/tmp/
+/data/*
+!/data/.gitkeep
+
+# MLflow
+mlruns/
+
+# Service artifacts
+nlp_service/artifacts/
+cv_service/artifacts/
+
+# OS
+.DS_Store
+
+# Byte-compiled
+*.so

@@ -1,0 +1,60 @@
+stages:
+  bootstrap-data-dirs:
+    cmd: python pipelines/bootstrap_data_dirs.py
+    deps:
+      - pipelines/bootstrap_data_dirs.py
+    outs:
+      - data/raw:
+          cache: false
+          persist: true
+      - data/processed:
+          cache: false
+          persist: true
+      - data/external:
+          cache: false
+          persist: true
+  nlp-preprocess:
+    cmd: python pipelines/nlp_prepare_data.py
+    deps:
+      - pipelines/nlp_prepare_data.py
+    outs:
+      - data/raw/nlp_sentiment.csv:
+          cache: false
+          persist: true
+      - data/processed/nlp:
+          cache: false
+          persist: true
+  nlp-train:
+    cmd: python nlp_service/train.py
+    deps:
+      - data/processed/nlp/train.csv
+      - data/processed/nlp/test.csv
+      - nlp_service/train.py
+    outs:
+      - nlp_service/artifacts:
+          cache: false
+          persist: true
+    metrics_no_cache:
+      - nlp_service/artifacts/metrics.json
+  cv-preprocess:
+    cmd: python pipelines/cv_prepare_data.py
+    deps:
+      - pipelines/cv_prepare_data.py
+    outs:
+      - data/raw/cv:
+          cache: false
+          persist: true
+      - data/processed/cv:
+          cache: false
+          persist: true
+  cv-train:
+    cmd: python cv_service/train.py
+    deps:
+      - cv_service/train.py
+      - data/processed/cv/labels.csv
+    outs:
+      - cv_service/artifacts:
+          cache: false
+          persist: true
+    metrics_no_cache:
+      - cv_service/artifacts/metrics.json

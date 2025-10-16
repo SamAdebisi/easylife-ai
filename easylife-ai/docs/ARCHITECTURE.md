@@ -58,6 +58,10 @@ Each phase should ship with:
 ## Phase 2 Snapshot
 
 - **Data Pipeline** – `pipelines/cv_prepare_data.py` generates geometric patterns with and without Gaussian blur, producing images in `data/raw/cv/` and manifest metadata in `data/processed/cv/labels.csv` via the `cv-preprocess` stage.
-- **Training** – `cv_service/train.py` computes variance-of-Laplacian scores, identifies an optimal threshold, logs metrics to MLflow (`cv_blur_detection`), and persists model artifacts in `cv_service/artifacts/`.
+- **Data Pipeline** – `pipelines/cv_ingest_data.py` copies real data (or synthesises fallbacks) into `data/raw/cv/`, while `pipelines/cv_prepare_data.py` produces the manifest leveraged by training stages.
+- **Training** –
+  - Baseline threshold: `cv_service/train.py` computes variance-of-Laplacian scores, identifies an optimal threshold, logs metrics to MLflow (`cv_blur_detection`), and persists artifacts in `cv_service/artifacts/`.
+  - CNN upgrade: `cv_service/train_cnn.py` trains a Torch CNN, exports a TorchScript model, and logs results under `cv_blur_detection_cnn`.
 - **Serving** – `cv_service/app/main.py` exposes `/predict_image`, `/health`, and `/metrics`. Requests accept multipart images, emit `cv_predictions_total` Prometheus counters, and log blur scores to MLflow (`cv_service_inference`).
+- **Model Variants** – The service can load either the threshold or CNN model via the `CV_MODEL_VARIANT` environment variable, enabling rapid A/B comparisons.
 - **Testing** – `cv_service/tests/test_predict_image.py` covers inference, metrics exposure, and ensures the fallback training path keeps the model ready for local runs.
