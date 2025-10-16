@@ -21,8 +21,6 @@ import pandas as pd
 from joblib import dump
 from sklearn.metrics import accuracy_score, f1_score
 
-from cv_service.model import BlurThresholdModel, variance_of_laplacian
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))

@@ -1,0 +1,102 @@
+schema: '2.0'
+stages:
+  nlp-preprocess:
+    cmd: python pipelines/nlp_prepare_data.py
+    deps:
+    - path: pipelines/nlp_prepare_data.py
+      hash: md5
+      md5: 620ff05f13c7a407050de8dbecbee293
+      size: 1146
+    outs:
+    - path: data/processed/nlp
+      hash: md5
+      md5: b2d887959239c98daa659debdccd63ec.dir
+      size: 1188
+      nfiles: 2
+    - path: data/raw/nlp_sentiment.csv
+      hash: md5
+      md5: 1fae0bd9d445a9a79a53f7612880f027
+      size: 1177
+  nlp-train:
+    cmd: python nlp_service/train.py
+    deps:
+    - path: data/processed/nlp/test.csv
+      hash: md5
+      md5: 272e63c5059a80c227dd2ee2b2c8bcb6
+      size: 241
+    - path: data/processed/nlp/train.csv
+      hash: md5
+      md5: e85080e2721feb8fc3e4932efe641221
+      size: 947
+    - path: nlp_service/train.py
+      hash: md5
+      md5: a78fd67d8760277d666df2deeaa4118c
+      size: 4023
+    outs:
+    - path: nlp_service/artifacts/metrics.json
+      hash: md5
+      md5: 816d0a2a70f6979c760b94f3dfa26507
+      size: 34
+    - path: nlp_service/artifacts/mlflow_model
+      hash: md5
+      md5: 618aaaefceb241f0cd58f0509c70670a.dir
+      size: 12913
+      nfiles: 5
+    - path: nlp_service/artifacts/sentiment_model.pkl
+      hash: md5
+      md5: aa995d1b829580a28f9167ecd89dec2a
+      size: 12144
+  cv-ingest:
+    cmd: python pipelines/cv_ingest_data.py
+    deps:
+    - path: configs/cv_ingest.yaml
+      hash: md5
+      md5: 3173c38f47950a6f586d30774f5b4b16
+      size: 380
+    - path: pipelines/cv_ingest_data.py
+      hash: md5
+      md5: d98ab11d9a585db3d1db669d3393aa91
+      size: 4864
+    outs:
+    - path: data/raw/cv
+      hash: md5
+      md5: 393d224b16800f9926bfc6c11e14fe3f.dir
+      size: 434921
+      nfiles: 48
+  cv-preprocess:
+    cmd: python pipelines/cv_prepare_data.py
+    deps:
+    - path: data/raw/cv
+      hash: md5
+      md5: 393d224b16800f9926bfc6c11e14fe3f.dir
+      size: 434921
+      nfiles: 48
+    - path: pipelines/cv_prepare_data.py
+      hash: md5
+      md5: 9a83cc5c24822cbfb0614cd31fcca88e
+      size: 1452
+    outs:
+    - path: data/processed/cv/labels.csv
+      hash: md5
+      md5: e4a7d9e52e2d724c3ac9454d218c3a75
+      size: 1556
+  cv-train:
+    cmd: python cv_service/train.py
+    deps:
+    - path: cv_service/train.py
+      hash: md5
+      md5: d2d34a5d79381acddb0ba529c04e75a5
+      size: 4162
+    - path: data/processed/cv/labels.csv
+      hash: md5
+      md5: e4a7d9e52e2d724c3ac9454d218c3a75
+      size: 1556
+    outs:
+    - path: cv_service/artifacts/blur_model.joblib
+      hash: md5
+      md5: 109e5340548e17727c829e3d611cae0f
+      size: 178
+    - path: cv_service/artifacts/metrics.json
+      hash: md5
+      md5: f30e5ce3c1e60fbc0b0484a05faed25c
+      size: 174

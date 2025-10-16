@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import cv2
 import numpy as np
-from app.main import app, ensure_model_artifact
 from fastapi.testclient import TestClient
+
+from cv_service.app.main import app, ensure_model_artifact
 
 
 def _generate_image(blur: bool) -> bytes:
@@ -36,6 +37,7 @@ def test_predict_image_returns_classification():
     assert payload["label_name"] in ("sharp", "blurred")
     assert payload["confidence"] >= 0.0
     assert payload["score"] >= 0.0
+    assert payload["model_variant"] in ("threshold", "cnn")
 
 
 def test_metrics_endpoint_exposes_counter():

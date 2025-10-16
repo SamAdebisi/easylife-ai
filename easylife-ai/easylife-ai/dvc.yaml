@@ -4,13 +4,7 @@ stages:
     deps:
       - pipelines/bootstrap_data_dirs.py
     outs:
-      - data/raw:
-          cache: false
-          persist: true
-      - data/processed:
-          cache: false
-          persist: true
-      - data/external:
+      - data/.bootstrap_complete:
           cache: false
           persist: true
   nlp-preprocess:
@@ -31,20 +25,31 @@ stages:
       - data/processed/nlp/test.csv
       - nlp_service/train.py
     outs:
-      - nlp_service/artifacts:
+      - nlp_service/artifacts/sentiment_model.pkl:
           cache: false
           persist: true
-    metrics_no_cache:
-      - nlp_service/artifacts/metrics.json
-  cv-preprocess:
-    cmd: python pipelines/cv_prepare_data.py
+      - nlp_service/artifacts/mlflow_model:
+          cache: false
+          persist: true
+    metrics:
+      - nlp_service/artifacts/metrics.json:
+          cache: false
+  cv-ingest:
+    cmd: python pipelines/cv_ingest_data.py
     deps:
-      - pipelines/cv_prepare_data.py
+      - configs/cv_ingest.yaml
+      - pipelines/cv_ingest_data.py
     outs:
       - data/raw/cv:
           cache: false
           persist: true
-      - data/processed/cv:
+  cv-preprocess:
+    cmd: python pipelines/cv_prepare_data.py
+    deps:
+      - pipelines/cv_prepare_data.py
+      - data/raw/cv
+    outs:
+      - data/processed/cv/labels.csv:
           cache: false
           persist: true
   cv-train:
@@ -53,8 +58,21 @@ stages:
       - cv_service/train.py
       - data/processed/cv/labels.csv
     outs:
-      - cv_service/artifacts:
+      - cv_service/artifacts/blur_model.joblib:
           cache: false
           persist: true
-    metrics_no_cache:
-      - cv_service/artifacts/metrics.json
+    metrics:
+      - cv_service/artifacts/metrics.json:
+          cache: false
+  cv-train-cnn:
+    cmd: python cv_service/train_cnn.py
+    deps:
+      - cv_service/train_cnn.py
+      - data/processed/cv/labels.csv
+    outs:
+      - cv_service/artifacts/cnn_model.pt:
+          cache: false
+          persist: true
+    metrics:
+      - cv_service/artifacts/cnn_metrics.json:
+          cache: false

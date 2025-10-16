@@ -9,9 +9,14 @@ and negative labels.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
-from nlp_service.data_utils import build_dataset, split_dataset
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from nlp_service.data_utils import build_dataset, split_dataset  # noqa: E402
 
 DATA_ROOT = Path(__file__).resolve().parent.parent / "data"
 RAW_PATH = DATA_ROOT / "raw" / "nlp_sentiment.csv"

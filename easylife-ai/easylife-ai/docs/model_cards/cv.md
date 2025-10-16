@@ -13,23 +13,36 @@
 - **Storage**: Images under `data/raw/cv/{sharp,blurred}`; manifest labels at `data/processed/cv/labels.csv` (DVC-managed).
 - **Known Gaps**: Lacks real textures, lighting variations, and compression artefacts. Replace with domain data before deployment.
 
-## Model
+## Models
 
-- **Architecture**: Variance-of-Laplacian blur score with a learned threshold.
+### Threshold Baseline
+
+- **Architecture**: Variance-of-Laplacian blur score with an optimised threshold.
 - **Training Script**: `cv_service/train.py` (DVC stage `cv-train`).
 - **Hyperparameters**:
-  - Threshold search range: min–max Laplacian variance over dataset (200 steps).
-  - Blurring kernel: 9×9 Gaussian, σ=3 (data generation).
-- **Artifacts**: `cv_service/artifacts/blur_model.joblib` and `metrics.json`.
+  - Threshold scan: min–max Laplacian variance over dataset (200 steps).
+  - Gaussian blur augmentation for synthetic fallback: 9×9 kernel, σ=3.
+- **Artifacts**: `cv_service/artifacts/blur_model.joblib`, `metrics.json`.
+
+### CNN Upgrade
+
+- **Architecture**: 4-layer convolutional network (1×128×128 input → 2 classes) with BatchNorm, ReLU, and dropout.
+- **Training Script**: `cv_service/train_cnn.py` (DVC stage `cv-train-cnn`).
+- **Hyperparameters**:
+  - Epochs: configurable via `CV_CNN_EPOCHS` (default 5).
+  - Batch size: `CV_CNN_BATCH_SIZE` (default 16).
+  - Optimiser: Adam, LR `CV_CNN_LR` (default 1e-3).
+- **Artifacts**: TorchScript model `cv_service/artifacts/cnn_model.pt`, metrics in `cnn_metrics.json`.
 
 ## Metrics
 
-- **Baseline Results (synthetic)**:
-  - Accuracy ≈ 1.0
-  - F1 Score ≈ 1.0
-  - Mean Laplacian variance (sharp): ~1500
-  - Mean Laplacian variance (blurred): ~100
-- **Tracking**: MLflow experiment `cv_blur_detection` for training, `cv_service_inference` for live telemetry.
+- **Baseline Results (synthetic fallback)**:
+  - Threshold accuracy ≈ 1.0
+  - CNN validation accuracy ≈ 0.95–1.0 after 5 epochs
+- **Tracking**:
+  - Threshold: MLflow experiment `cv_blur_detection`
+  - CNN: MLflow experiment `cv_blur_detection_cnn`
+  - Inference telemetry: `cv_service_inference` (records `blur_score` or `sharp_probability`).
 
 ## Serving
 
@@ -37,12 +50,13 @@
   - `GET /health`
   - `POST /predict_image` → `{label, label_name, score, confidence}`
   - `GET /metrics` exposes Prometheus counters (`cv_predictions_total`).
-- **Dependency**: Requires `opencv-python-headless` for inference.
+- **Variants**: Select via `CV_MODEL_VARIANT` = `threshold` (default) or `cnn`.
+- **Dependencies**: `opencv-python-headless`, `torch`, `torchvision`.
 
 ## Risks & Next Steps
 
-1. Replace synthetic dataset with production samples; version via DVC.
+1. Replace synthetic dataset with production samples; version via DVC ingestion stage.
 2. Evaluate recall on edge cases (motion blur, defocus, low-light noise).
-3. Introduce CNN/Vision Transformer baseline (PyTorch) for richer feature extraction.
+3. Experiment with Vision Transformers (e.g., DeiT-B) using the existing ingestion/manifest flow.
 4. Add shadow deployment dashboards and latency SLIs in Grafana.
 5. Extend API contract with per-class confidence thresholds and optional masks.

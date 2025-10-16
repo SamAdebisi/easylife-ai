@@ -1,5 +1,6 @@
-from app.main import app
 from fastapi.testclient import TestClient
+
+from nlp_service.app.main import app
 
 
 def test_predict_endpoint_returns_label_and_confidence():
