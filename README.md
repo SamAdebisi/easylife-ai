@@ -105,6 +105,44 @@ See `docs/ARCHITECTURE.md` for a deeper view of each service and shared componen
 4. Follow `docs/observability/dashboard_capture.md` to snapshot Grafana panels (e.g., `cv_predictions_total`, `sharp_probability`).
 5. Switch inference between threshold and CNN variants via `CV_MODEL_VARIANT` environment variable (defaults to `threshold`). Set `CV_MODEL_VARIANT=cnn` to exercise the TorchScript model.
 
+## Phase 3 – Time-series Forecasting Service
+
+1. Generate the synthetic KPI dataset and baseline Holt-Winters model:
+   ```bash
+   dvc repro ts-prepare ts-train
+   ```
+   Metrics are logged to MLflow under the `ts_forecasting` experiment; artifacts land in `ts_forecasting/artifacts/`.
+2. Launch the FastAPI forecasting API:
+   ```bash
+   ./ts_forecasting/run_dev.sh   # defaults to port 8003
+   ```
+3. Request a forecast and inspect Prometheus metrics:
+   ```bash
+   curl -s http://127.0.0.1:8003/forecast -H "Content-Type: application/json" \
+     -d '{"horizon": 14}'
+   ```
+   The service emits `ts_forecast_requests_total` and `ts_forecast_horizon` metrics for Grafana dashboards.
+
+## Phase 4 – Recommendation Service
+
+1. Synthesize interaction data and train the collaborative-filtering baseline:
+   ```bash
+   dvc repro recsys-prepare recsys-train
+   ```
+   Training logs `recall_at_10` and `ndcg_at_10` to the `recsys_collaborative_filtering` MLflow experiment and stores artifacts in `recsys_service/artifacts/`.
+2. Start the recommender API:
+   ```bash
+   ./recsys_service/run_dev.sh   # listens on ${PORT:-8004}
+   ```
+3. Fetch personalised recommendations and similar items:
+   ```bash
+   curl -s -X POST http://127.0.0.1:8004/recommendations \
+     -H "Content-Type: application/json" \
+     -d '{"user_id": "user-0", "top_k": 5}'
+   curl -s http://127.0.0.1:8004/items/item-0/similar?top_k=5
+   ```
+   Prometheus exposes `recsys_recommendation_requests_total` and `recsys_topk_requested` for dashboarding.
+
 ## Contributing
 
 1. Create a feature branch.

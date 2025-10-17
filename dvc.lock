@@ -100,3 +100,51 @@ stages:
       hash: md5
       md5: f30e5ce3c1e60fbc0b0484a05faed25c
       size: 174
+  ts-prepare:
+    cmd: python pipelines/ts_prepare_data.py
+    deps:
+    - path: pipelines/ts_prepare_data.py
+      hash: md5
+      md5: aebd4a3888cd4e79060b5574599b6d18
+      size: 471
+    outs:
+    - path: data/processed/ts/series.csv
+      hash: md5
+      md5: 0fc577748bb0e2da5079d29cdf6f6cec
+      size: 31835
+    - path: data/raw/ts/synthetic_series.csv
+      hash: md5
+      md5: 0fc577748bb0e2da5079d29cdf6f6cec
+      size: 31835
+  ts-train:
+    cmd: python -m ts_forecasting.train
+    deps:
+    - path: data/processed/ts/series.csv
+      hash: md5
+      md5: 0fc577748bb0e2da5079d29cdf6f6cec
+      size: 31835
+    - path: ts_forecasting/data_utils.py
+      hash: md5
+      md5: 86edfe632dfed91f023338c01e1de766
+      size: 2844
+    - path: ts_forecasting/model.py
+      hash: md5
+      md5: 309ef11df3edb11da7e272888e1a5200
+      size: 3566
+    - path: ts_forecasting/train.py
+      hash: md5
+      md5: b71c46ec86cc64173b4d31a91ff6e8d3
+      size: 1470
+    outs:
+    - path: ts_forecasting/artifacts/holt_winters.pkl
+      hash: md5
+      md5: 805e1d0a39db51de44f5c18351870dd7
+      size: 136458
+    - path: ts_forecasting/artifacts/metadata.json
+      hash: md5
+      md5: 0c0cf71731548f546cff8ae0b1e2b332
+      size: 237
+    - path: ts_forecasting/artifacts/metrics.json
+      hash: md5
+      md5: 2d00e64bd1de2e23d9d47b70e73f299a
+      size: 91

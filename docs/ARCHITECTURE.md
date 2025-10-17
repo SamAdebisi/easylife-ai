@@ -65,3 +65,17 @@ Each phase should ship with:
 - **Serving** – `cv_service/app/main.py` exposes `/predict_image`, `/health`, and `/metrics`. Requests accept multipart images, emit `cv_predictions_total` Prometheus counters, and log blur scores to MLflow (`cv_service_inference`).
 - **Model Variants** – The service can load either the threshold or CNN model via the `CV_MODEL_VARIANT` environment variable, enabling rapid A/B comparisons.
 - **Testing** – `cv_service/tests/test_predict_image.py` covers inference, metrics exposure, and ensures the fallback training path keeps the model ready for local runs.
+
+## Phase 3 Snapshot
+
+- **Data Pipeline** – `pipelines/ts_prepare_data.py` synthesises a seasonal KPI series and stores it under `data/raw/ts/` and `data/processed/ts/series.csv`.
+- **Training** – `ts_forecasting/train.py` fits an additive Holt-Winters baseline, logs metrics (`mae`, `rmse`, `mape`) to MLflow (`ts_forecasting` experiment), and writes artifacts (model, metadata) to `ts_forecasting/artifacts/`.
+- **Serving** – `ts_forecasting/app/main.py` exposes `/forecast` alongside `/health` and `/metrics`, instrumented with Prometheus counters/histograms for horizon tracking.
+- **Testing** – `ts_forecasting/tests/test_forecast.py` validates the API contract and ensures forecasts are returned for valid horizons.
+
+## Phase 4 Snapshot
+
+- **Data Pipeline** – `pipelines/recsys_prepare_data.py` builds a synthetic user–item interaction dataset plus item catalog into `data/raw/recsys/` and `data/processed/recsys/`.
+- **Training** – `recsys_service/train.py` trains a truncated-SVD collaborative filtering model, logs `recall@10` and `ndcg@10` to MLflow (`recsys_collaborative_filtering`), and persists artifacts under `recsys_service/artifacts/`.
+- **Serving** – `recsys_service/app/main.py` serves personalised `/recommendations` and `/items/{item_id}/similar` endpoints with Prometheus metrics for request volume and top-k distribution.
+- **Testing** – `recsys_service/tests/test_health.py` (extended) seeds artifacts, exercises recommendation and similarity endpoints, and verifies fallbacks for unseen users/items.

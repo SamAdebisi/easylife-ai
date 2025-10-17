@@ -1,0 +1,10 @@
+{
+  "seasonal_periods": "7",
+  "trend": "add",
+  "seasonal": "add",
+  "train_start": "2021-01-01T00:00:00",
+  "train_end": "2023-12-01T00:00:00",
+  "test_start": "2023-12-02T00:00:00",
+  "test_end": "2023-12-31T00:00:00",
+  "freq": "D"
+}

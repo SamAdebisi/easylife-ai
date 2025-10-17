@@ -19,7 +19,7 @@ stages:
           cache: false
           persist: true
   nlp-train:
-    cmd: python nlp_service/train.py
+    cmd: python -m nlp_service.train
     deps:
       - data/processed/nlp/train.csv
       - data/processed/nlp/test.csv
@@ -53,7 +53,7 @@ stages:
           cache: false
           persist: true
   cv-train:
-    cmd: python cv_service/train.py
+    cmd: python -m cv_service.train
     deps:
       - cv_service/train.py
       - data/processed/cv/labels.csv
@@ -65,7 +65,7 @@ stages:
       - cv_service/artifacts/metrics.json:
           cache: false
   cv-train-cnn:
-    cmd: python cv_service/train_cnn.py
+    cmd: python -m cv_service.train_cnn
     deps:
       - cv_service/train_cnn.py
       - data/processed/cv/labels.csv
@@ -75,4 +75,70 @@ stages:
           persist: true
     metrics:
       - cv_service/artifacts/cnn_metrics.json:
+          cache: false
+  ts-prepare:
+    cmd: python pipelines/ts_prepare_data.py
+    deps:
+      - pipelines/ts_prepare_data.py
+    outs:
+      - data/raw/ts/synthetic_series.csv:
+          cache: false
+          persist: true
+      - data/processed/ts/series.csv:
+          cache: false
+          persist: true
+  ts-train:
+    cmd: python -m ts_forecasting.train
+    deps:
+      - data/processed/ts/series.csv
+      - ts_forecasting/data_utils.py
+      - ts_forecasting/model.py
+      - ts_forecasting/train.py
+    outs:
+      - ts_forecasting/artifacts/holt_winters.pkl:
+          cache: false
+          persist: true
+      - ts_forecasting/artifacts/metadata.json:
+          cache: false
+          persist: true
+    metrics:
+      - ts_forecasting/artifacts/metrics.json:
+          cache: false
+  recsys-prepare:
+    cmd: python pipelines/recsys_prepare_data.py
+    deps:
+      - pipelines/recsys_prepare_data.py
+    outs:
+      - data/raw/recsys/interactions.csv:
+          cache: false
+          persist: true
+      - data/processed/recsys/train.csv:
+          cache: false
+          persist: true
+      - data/processed/recsys/test.csv:
+          cache: false
+          persist: true
+      - data/processed/recsys/items.csv:
+          cache: false
+          persist: true
+  recsys-train:
+    cmd: python -m recsys_service.train
+    deps:
+      - data/processed/recsys/train.csv
+      - data/processed/recsys/test.csv
+      - data/processed/recsys/items.csv
+      - recsys_service/data_utils.py
+      - recsys_service/train.py
+    outs:
+      - recsys_service/artifacts/svd_model.joblib:
+          cache: false
+          persist: true
+      - recsys_service/artifacts/mappings.json:
+          cache: false
+          persist: true
+      - recsys_service/artifacts/sample_recommendations.json:
+          cache: false
+          persist: true
+    metrics:
+      - recsys_service/artifacts/metrics.json:
           cache: false
