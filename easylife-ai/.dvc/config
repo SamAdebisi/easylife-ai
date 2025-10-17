@@ -1,8 +1,0 @@
-[core]
-    remote = minio
-    autostage = true
-[cache]
-    type = copy
-['remote "minio"']
-    url = s3://datasets
-    endpointurl = http://127.0.0.1:9000

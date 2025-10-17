@@ -1,1 +1,0 @@
-"""Computer vision service package."""
