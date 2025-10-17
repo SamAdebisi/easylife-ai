@@ -5,7 +5,7 @@ stages:
     deps:
     - path: pipelines/nlp_prepare_data.py
       hash: md5
-      md5: 620ff05f13c7a407050de8dbecbee293
+      md5: b1d71097df1822ca74801c4dc5848293
       size: 1146
     outs:
     - path: data/processed/nlp
@@ -18,7 +18,7 @@ stages:
       md5: 1fae0bd9d445a9a79a53f7612880f027
       size: 1177
   nlp-train:
-    cmd: python nlp_service/train.py
+    cmd: python -m nlp_service.train
     deps:
     - path: data/processed/nlp/test.csv
       hash: md5
@@ -39,13 +39,13 @@ stages:
       size: 34
     - path: nlp_service/artifacts/mlflow_model
       hash: md5
-      md5: 618aaaefceb241f0cd58f0509c70670a.dir
-      size: 12913
+      md5: 3907aa5b562b2e615e27893dbd96669d.dir
+      size: 12843
       nfiles: 5
     - path: nlp_service/artifacts/sentiment_model.pkl
       hash: md5
-      md5: aa995d1b829580a28f9167ecd89dec2a
-      size: 12144
+      md5: 6198f983d436a81145b879a9ad02b3b1
+      size: 12125
   cv-ingest:
     cmd: python pipelines/cv_ingest_data.py
     deps:

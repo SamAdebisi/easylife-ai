@@ -1,0 +1,39 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nlp-service-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: nlp-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cv-service-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: cv-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ts-forecasting-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: ts-forecasting
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: recsys-service-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: recsys-service

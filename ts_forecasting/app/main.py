@@ -9,12 +9,16 @@ from prometheus_client import Counter, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
 
+from shared.tracing import instrument_fastapi_app, setup_tracing
 from ts_forecasting.model import ForecastArtifacts, ensure_artifacts, forecast
 
 logger = logging.getLogger("ts_forecasting")
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="EasyLife AI Forecasting Service", version="0.3.0")
+
+setup_tracing("ts-forecasting-service")
+instrument_fastapi_app(app, "ts-forecasting-service")
 
 Instrumentator().instrument(app).expose(
     app,

@@ -79,3 +79,9 @@ Each phase should ship with:
 - **Training** – `recsys_service/train.py` trains a truncated-SVD collaborative filtering model, logs `recall@10` and `ndcg@10` to MLflow (`recsys_collaborative_filtering`), and persists artifacts under `recsys_service/artifacts/`.
 - **Serving** – `recsys_service/app/main.py` serves personalised `/recommendations` and `/items/{item_id}/similar` endpoints with Prometheus metrics for request volume and top-k distribution.
 - **Testing** – `recsys_service/tests/test_health.py` (extended) seeds artifacts, exercises recommendation and similarity endpoints, and verifies fallbacks for unseen users/items.
+
+## Phase 5 Snapshot
+
+- **Explainability** – `nlp_service/explain.py` surfaces token-level contributions for the sentiment classifier; `/explain` logs the payload to MLflow for post-hoc analysis.
+- **Monitoring Automation** – `mlops/collect_metrics.py` queries Prometheus and exports per-metric aggregates so cron/DVC jobs can monitor traffic patterns offline.
+- **Testing** – `mlops/tests/test_collect_metrics.py` mocks Prometheus responses to guarantee the collector generates correct CSV summaries.

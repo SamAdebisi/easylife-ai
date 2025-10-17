@@ -1,0 +1,77 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Time Series Forecasting Service",
+    "tags": ["easylife-ai", "time-series"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Forecast Requests",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "ts_forecast_requests_total",
+            "legendFormat": "Total Requests"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Forecast Horizon Distribution",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "ts_forecast_horizon",
+            "legendFormat": "Horizon: {{ horizon }}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Forecast Accuracy",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "ts_forecast_accuracy",
+            "legendFormat": "Accuracy"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 18, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "TS Service Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"ts-forecasting-service\"}",
+            "legendFormat": "TS Service"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 8}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

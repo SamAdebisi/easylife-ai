@@ -17,6 +17,8 @@ from prometheus_client import Counter
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel
 
+from shared.tracing import instrument_fastapi_app, setup_tracing
+
 from cv_service.model import (  # isort:skip
     BlurThresholdModel,
     CnnBlurModel,
@@ -27,6 +29,9 @@ logger = logging.getLogger("cv_service")
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 
 app = FastAPI(title="EasyLife AI CV Service", version="0.2.0")
+
+setup_tracing("cv-service")
+instrument_fastapi_app(app, "cv-service")
 
 Instrumentator().instrument(app).expose(
     app,

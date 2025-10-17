@@ -1,0 +1,81 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "NLP Service Metrics",
+    "tags": ["easylife-ai", "nlp"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "NLP Predictions Total",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "nlp_predictions_total",
+            "legendFormat": "{{ label }}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Prediction Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(nlp_predictions_total[5m])",
+            "legendFormat": "{{ label }}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "NLP Request Duration",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"nlp-service\"}[5m]))",
+            "legendFormat": "50th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"nlp-service\"}[5m]))",
+            "legendFormat": "95th percentile"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 18, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "NLP Service Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"nlp-service\"}",
+            "legendFormat": "NLP Service"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 8}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

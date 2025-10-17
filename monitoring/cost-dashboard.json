@@ -1,0 +1,92 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "EasyLife AI - Cost Monitoring",
+    "tags": ["easylife-ai", "cost", "monitoring"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Resource Usage by Service",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(container_cpu_usage_seconds_total[5m])) by (pod)",
+            "legendFormat": "{{ pod }}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 0.5},
+                {"color": "red", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Memory Usage by Service",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(container_memory_usage_bytes) by (pod)",
+            "legendFormat": "{{ pod }}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Pod Count by Service",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(kube_pod_info) by (app)",
+            "legendFormat": "{{ app }}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Request Rate vs Cost",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{ job }} - Requests/sec"
+          },
+          {
+            "expr": "sum(rate(container_cpu_usage_seconds_total[5m])) by (job)",
+            "legendFormat": "{{ job }} - CPU Usage"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}
+      },
+      {
+        "id": 5,
+        "title": "Cost Optimization Recommendations",
+        "type": "text",
+        "options": {
+          "content": "# Cost Optimization Recommendations\n\n## Current Status\n- **CPU Usage**: Monitor for over-provisioning\n- **Memory Usage**: Check for memory leaks\n- **Pod Count**: Optimize replica counts\n\n## Recommendations\n1. **Right-size Resources**: Adjust CPU/memory limits based on actual usage\n2. **Horizontal Pod Autoscaling**: Enable HPA for dynamic scaling\n3. **Resource Quotas**: Set appropriate resource quotas\n4. **Pod Disruption Budgets**: Ensure high availability\n5. **Cost Monitoring**: Track resource costs over time\n\n## Alerts\n- High CPU usage (>80% for 5 minutes)\n- High memory usage (>90% for 5 minutes)\n- Pod count exceeding limits\n- Resource quota violations"
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 24}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

@@ -9,9 +9,14 @@ import os
 import mlflow
 
 from ts_forecasting.data_utils import load_series
-from ts_forecasting.model import (ARTIFACT_DIR, METADATA_PATH, METRICS_PATH,
-                                  MODEL_PATH, persist_artifacts,
-                                  train_holt_winters)
+from ts_forecasting.model import (
+    ARTIFACT_DIR,
+    METADATA_PATH,
+    METRICS_PATH,
+    MODEL_PATH,
+    persist_artifacts,
+    train_holt_winters,
+)
 
 
 def configure_mlflow() -> None:

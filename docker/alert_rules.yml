@@ -1,0 +1,80 @@
+groups:
+  - name: easylife-ai-alerts
+    rules:
+      # Service Health Alerts
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate for {{ $labels.job }}"
+          description: "Error rate is {{ $value }} errors per second for {{ $labels.job }}"
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time for {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.job }}"
+
+      # NLP Service Specific Alerts
+      - alert: NLPPredictionFailure
+        expr: rate(nlp_predictions_total[5m]) == 0 and up{job="nlp-service"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No NLP predictions in 5 minutes"
+          description: "NLP service is up but no predictions have been made"
+
+      # Time Series Forecasting Alerts
+      - alert: TSForecastFailure
+        expr: rate(ts_forecast_requests_total[5m]) == 0 and up{job="ts-forecasting-service"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No time series forecasts in 5 minutes"
+          description: "TS service is up but no forecasts have been made"
+
+      # Recommendation System Alerts
+      - alert: RecsysFailure
+        expr: rate(recsys_recommendations_total[5m]) == 0 and up{job="recsys-service"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No recommendations in 5 minutes"
+          description: "Recsys service is up but no recommendations have been made"
+
+      # Computer Vision Alerts
+      - alert: CVProcessingFailure
+        expr: rate(cv_predictions_total[5m]) == 0 and up{job="cv-service"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No CV predictions in 5 minutes"
+          description: "CV service is up but no predictions have been made"
+
+      # MLflow Alerts
+      - alert: MLflowDown
+        expr: up{job="mlflow"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MLflow is down"
+          description: "MLflow tracking server is not accessible"

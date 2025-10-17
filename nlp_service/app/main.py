@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import datetime
 from itertools import count
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import mlflow
 from fastapi import FastAPI, HTTPException
@@ -15,12 +16,17 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
 
 from nlp_service.data_utils import build_dataset, split_dataset
+from nlp_service.explain import TokenContribution, explain_text
 from nlp_service.train import build_pipeline, train_model
+from shared.tracing import instrument_fastapi_app, setup_tracing
 
 logger = logging.getLogger("nlp_service")
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 
 app = FastAPI(title="EasyLife AI NLP Service", version="0.2.0")
+
+TRACER = setup_tracing("nlp-service")
+instrument_fastapi_app(app, "nlp-service")
 
 Instrumentator().instrument(app).expose(
     app,
@@ -49,6 +55,22 @@ INFERENCE_STEP = count()
 MODEL_PIPELINE = None
 
 
+def _predict_proba(text: str) -> tuple[int, float]:
+    probabilities = MODEL_PIPELINE.predict_proba([text])[0]
+    label = int(probabilities.argmax())
+    confidence = float(probabilities[label])
+    return label, confidence
+
+
+def _serialise_tokens(
+    contributions: List[TokenContribution],
+) -> List[TokenContributionResponse]:
+    return [
+        TokenContributionResponse(token=item.token, contribution=item.contribution)
+        for item in contributions
+    ]
+
+
 class HealthResponse(BaseModel):
     status: str = "ok"
 
@@ -60,6 +82,26 @@ class PredictionRequest(BaseModel):
 class PredictionResponse(BaseModel):
     label: int
     confidence: float
+
+
+class TokenContributionResponse(BaseModel):
+    token: str
+    contribution: float
+
+
+class ExplanationRequest(PredictionRequest):
+    top_k: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Number of top contributing tokens to return.",
+    )
+
+
+class ExplanationResponse(BaseModel):
+    label: int
+    confidence: float
+    tokens: List[TokenContributionResponse]
 
 
 def ensure_model_artifact() -> Path:
@@ -142,6 +184,36 @@ def log_inference(predicted_label: int, confidence: float) -> None:
         logger.debug("Failed to log inference metrics: %s", exc)
 
 
+def log_explanation(
+    label: int,
+    confidence: float,
+    text: str,
+    contributions: List[TokenContribution],
+) -> None:
+    if not MLFLOW_CLIENT or not MLFLOW_RUN_ID:
+        return
+
+    artifact_name = datetime.utcnow().strftime("explanation_%Y%m%dT%H%M%S%f.json")
+    payload = {
+        "text": text,
+        "label": label,
+        "confidence": confidence,
+        "tokens": [
+            {"token": item.token, "contribution": item.contribution}
+            for item in contributions
+        ],
+    }
+
+    try:
+        MLFLOW_CLIENT.log_dict(
+            MLFLOW_RUN_ID,
+            payload,
+            artifact_file=f"explanations/{artifact_name}",
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("Failed to log explanation payload: %s", exc)
+
+
 @app.on_event("startup")
 def _startup() -> None:
     load_model()
@@ -166,11 +238,37 @@ def predict(payload: PredictionRequest) -> PredictionResponse:
     if MODEL_PIPELINE is None:
         raise HTTPException(status_code=503, detail="Model not ready.")
 
-    probabilities = MODEL_PIPELINE.predict_proba([payload.text])[0]
-    label = int(probabilities.argmax())
-    confidence = float(probabilities[label])
+    label, confidence = _predict_proba(payload.text)
 
     PREDICTION_COUNTER.labels(label=str(label)).inc()
     log_inference(label, confidence)
 
     return PredictionResponse(label=label, confidence=confidence)
+
+
+@app.post(
+    "/explain",
+    response_model=ExplanationResponse,
+    summary="Return prediction explanation",
+)
+def explain(payload: ExplanationRequest) -> ExplanationResponse:
+    if MODEL_PIPELINE is None:
+        raise HTTPException(status_code=503, detail="Model not ready.")
+
+    label, confidence = _predict_proba(payload.text)
+    contributions = explain_text(
+        MODEL_PIPELINE,
+        payload.text,
+        top_k=payload.top_k,
+    )
+
+    serialized = _serialise_tokens(contributions)
+    PREDICTION_COUNTER.labels(label=str(label)).inc()
+    log_inference(label, confidence)
+    log_explanation(label, confidence, payload.text, contributions)
+
+    return ExplanationResponse(
+        label=label,
+        confidence=confidence,
+        tokens=serialized,
+    )

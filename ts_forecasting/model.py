@@ -12,8 +12,7 @@ from typing import Dict, Tuple
 import joblib
 import numpy as np
 import pandas as pd
-from statsmodels.tsa.holtwinters import (ExponentialSmoothing,
-                                         HoltWintersResults)
+from statsmodels.tsa.holtwinters import ExponentialSmoothing, HoltWintersResults
 
 from ts_forecasting.data_utils import load_series, train_test_split
 

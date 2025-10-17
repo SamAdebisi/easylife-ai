@@ -1,0 +1,77 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Recommendation System Service",
+    "tags": ["easylife-ai", "recommendation"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Recommendations Generated",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "recsys_recommendations_total",
+            "legendFormat": "Total Recommendations"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Top-K Distribution",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "recsys_topk_requested",
+            "legendFormat": "Top-{{ k }}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Recommendation Quality",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "recsys_recommendation_quality",
+            "legendFormat": "Quality Score"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 18, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Recsys Service Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"recsys-service\"}",
+            "legendFormat": "Recsys Service"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 8}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

@@ -9,11 +9,15 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
 
 from recsys_service.model import Recommendation, RecommendationEngine
+from shared.tracing import instrument_fastapi_app, setup_tracing
 
 logger = logging.getLogger("recsys_service")
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="EasyLife AI Recommendation Service", version="0.4.0")
+
+setup_tracing("recsys-service")
+instrument_fastapi_app(app, "recsys-service")
 
 Instrumentator().instrument(app).expose(
     app,

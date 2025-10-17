@@ -14,8 +14,7 @@ def main() -> None:
     if str(PROJECT_ROOT) not in sys.path:
         sys.path.append(str(PROJECT_ROOT))
 
-    from ts_forecasting.data_utils import (generate_synthetic_series,
-                                           save_dataset)
+    from ts_forecasting.data_utils import generate_synthetic_series, save_dataset
 
     df = generate_synthetic_series()
     save_dataset(df)
