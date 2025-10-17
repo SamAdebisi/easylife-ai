@@ -17,8 +17,12 @@ import mlflow
 import numpy as np
 from sklearn.decomposition import TruncatedSVD
 
-from recsys_service.data_utils import (InteractionData, build_user_item_matrix,
-                                       ensure_datasets, normalize_matrix)
+from recsys_service.data_utils import (
+    InteractionData,
+    build_user_item_matrix,
+    ensure_datasets,
+    normalize_matrix,
+)
 
 ARTIFACT_DIR = Path(__file__).resolve().parent / "artifacts"
 MODEL_PATH = ARTIFACT_DIR / "svd_model.joblib"
@@ -45,9 +49,7 @@ def ndcg_at_k(
 ) -> float:
     if not relevant:
         return 0.0
-    ideal_dcg = sum(
-        1.0 / np.log2(idx + 2) for idx in range(min(len(relevant), k))
-    )
+    ideal_dcg = sum(1.0 / np.log2(idx + 2) for idx in range(min(len(relevant), k)))
     if ideal_dcg == 0:
         return 0.0
     dcg = 0.0

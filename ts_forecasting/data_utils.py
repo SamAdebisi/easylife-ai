@@ -87,9 +87,7 @@ def train_test_split(
 ) -> Tuple[pd.Series, pd.Series]:
     """Split series into train/test segments keeping chronological order."""
     if test_size <= 0 or test_size >= len(series):
-        raise ValueError(
-            "test_size must be within the range (0, len(series))."
-        )
+        raise ValueError("test_size must be within the range (0, len(series)).")
     train = series.iloc[:-test_size]
     test = series.iloc[-test_size:]
     return train, test

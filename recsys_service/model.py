@@ -39,12 +39,10 @@ class RecommendationEngine:
         with open(MAPPINGS_PATH, "r", encoding="utf-8") as fp:
             payload = json.load(fp)
         self.user_to_index: Dict[str, int] = {
-            user_id: int(idx)
-            for user_id, idx in payload["user_to_index"].items()
+            user_id: int(idx) for user_id, idx in payload["user_to_index"].items()
         }
         self.index_to_item: Dict[int, str] = {
-            int(idx): item_id
-            for idx, item_id in payload["index_to_item"].items()
+            int(idx): item_id for idx, item_id in payload["index_to_item"].items()
         }
         self.item_to_index: Dict[str, int] = {
             item_id: idx for idx, item_id in self.index_to_item.items()
@@ -124,9 +122,7 @@ class RecommendationEngine:
                 break
         return recommendations
 
-    def similar_items(
-        self, item_id: str, top_k: int = 5
-    ) -> List[Recommendation]:
+    def similar_items(self, item_id: str, top_k: int = 5) -> List[Recommendation]:
         if item_id not in self.item_to_index:
             return []
         item_idx = self.item_to_index[item_id]
