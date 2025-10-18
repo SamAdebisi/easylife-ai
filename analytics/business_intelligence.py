@@ -517,8 +517,12 @@ class BusinessIntelligenceManager:
     def get_dashboard_data(self) -> Dict[str, Any]:
         """Get dashboard data."""
         return {
-            "model_performance": self.dashboard_generator.create_model_performance_dashboard(),
-            "business_metrics": self.dashboard_generator.create_business_metrics_dashboard(),
+            "model_performance": (
+                self.dashboard_generator.create_model_performance_dashboard()
+            ),
+            "business_metrics": (
+                self.dashboard_generator.create_business_metrics_dashboard()
+            ),
             "operational": self.dashboard_generator.create_operational_dashboard(),
             "alerts": self.dashboard_generator.create_alert_dashboard(),
         }
